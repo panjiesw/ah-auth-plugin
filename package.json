@@ -1,0 +1,40 @@
+{
+  "name": "ah-auth-plugin",
+  "version": "0.0.1",
+  "description": "Stateless authentication plugin using JSON Web Token for actionhero API Server",
+  "main": "''",
+  "scripts": {
+    "prepublish": "grunt dev",
+    "postpublish": "grunt clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/panjiesw/ah-auth-plugin.git"
+  },
+  "keywords": [
+    "jwt",
+    "jsonwebtoken",
+    "actionhero",
+    "authentication"
+  ],
+  "author": "Panjie SW <panjie@panjiesw.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/panjiesw/ah-auth-plugin/issues"
+  },
+  "homepage": "https://github.com/panjiesw/ah-auth-plugin",
+  "dependencies": {
+    "q": "~1.0.1",
+    "jsonwebtoken": "~0.2.0",
+    "scrypt": "~3.0.1",
+    "node-uuid": "~1.4.1"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.7.1",
+    "grunt": "~0.4.4",
+    "grunt-contrib-coffee": "~0.10.1",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-newer": "~0.7.0",
+    "grunt-contrib-clean": "~0.5.0"
+  }
+}
