@@ -13,12 +13,52 @@ _ = require 'lodash'
 scrypt = require 'scrypt'
 jwt = require 'jsonwebtoken'
 
+AuthError = (message, code) ->
+  @name = "AuthError"
+  @message = message
+  @code = code
+  @status = 500
+  return
+
+AuthError:: = new Error()
+AuthError::constructor = AuthError
+
+ImplementationError = (message, code) ->
+  @name = "ImplementationError"
+  @message = message
+  @code = code
+  @status = 500
+  return
+
+ImplementationError:: = new Error()
+ImplementationError::constructor = ImplementationError
+
+SignupError = (message, code) ->
+  @name = "SignupError"
+  @message = message
+  @code = code
+  @status = 400
+  return
+
+SignupError:: = new Error()
+SignupError::constructor = SignupError
+
+UnauthorizedError = (message, code) ->
+  @name = "UnauthorizedError"
+  @message = message
+  @code = code
+  @status = 401
+  return
+
+UnauthorizedError:: = new Error()
+UnauthorizedError::constructor = UnauthorizedError
+
 Auth = (api, next) ->
   config = api.config.auth
 
   _encodePassword =
     scrypt: (password) ->
-      Q.nfcall(scrypt.passwordHash, password, config.maxtime)
+      Q.nfcall(scrypt.passwordHash, password, config.scrypt.maxtime)
 
   _encodePasswordPromise = (password) ->
     if Q.isPromiseAlike api.AuthImpl.encodePassword
@@ -47,7 +87,8 @@ Auth = (api, next) ->
     if api.AuthImpl and api.AuthImpl.encodePassword
       unless api.AuthImpl.matchPassword
         deferred.reject(
-          new Error('No api.AuthImpl.matchPassword implementation'))
+          new ImplementationError(
+            "No 'api.AuthImpl.matchPassword' implementation"))
       else
         _matchPasswordPromise(passwordHash, password)
         .then (result) ->
@@ -58,7 +99,14 @@ Auth = (api, next) ->
       _matchPassword[scrypt](passwordHash, password)
       .then (result) ->
         deferred.resolve result
-      .catch (error) ->
+      .catch (err) ->
+        error = null
+        if err.err_message
+          error = new UnauthorizedError(
+            'Invalid credentials', 'incorrect_password')
+        else
+          error = new AuthError(
+            err.message, 'server_error')
         deferred.reject error
 
     deferred.promise.nodeify callback
@@ -85,18 +133,19 @@ Auth = (api, next) ->
     .then (passwordHash) ->
       userData[passwordField] = passwordHash
       unless api.AuthImpl and api.AuthImpl.signUp
-        throw new Error('no api.AuthImpl.signUp implementation.')
+        throw new ImplementationError(
+          "no 'api.AuthImpl.signUp' implementation.")
       uuid = null
       if config.enableVerification and needVerify
         uuid = uuid.v4()
       return _signUpPromise(userData, uuid)
     .then (data) ->
       unless data.user
-        throw new Error("no 'user' field in returned hash of
+        throw new ImplementationError("no 'user' field in returned hash of
           'api.AuthImpl.signUp'")
       if config.enableVerification
         unless data.uuid
-          throw new Error("Verification is enabled but no 'uuid'
+          throw new ImplementationError("Verification is enabled but no 'uuid'
             field in returned hash of 'api.AuthImpl.signUp'.")
         unless api.Mailer
           throw new Error("You need to install ah-nodemailer-plugin
@@ -123,9 +172,59 @@ Auth = (api, next) ->
 
     deferred.promise.nodeify callback
 
+  _findUserPromise = (login) ->
+    if Q.isPromiseAlike api.AuthImpl.findUser
+      api.AuthImpl.findUser login
+    else
+      Q.nfcall api.AuthImpl.findUser, login
+
+  _jwtPayloadPromise = (user) ->
+    if Q.isPromiseAlike api.AuthImpl.jwtPayload
+      api.AuthImpl.jwtPayload user
+    else
+      Q.nfcall api.AuthImpl.jwtPayload, user
+
   signIn = (login, password, callback) ->
     deferred = Q.defer()
-    unless api.AuthImpl and api.AuthImpl.findUser
-      deferred.reject Error('no api.AuthImpl.signUp implementation.')
+    unless api.AuthImpl and api.AuthImpl.findUser and api.AuthImpl.jwtPayload
+      deferred.reject(
+        new ImplementationError("no 'api.AuthImpl.findUser' and or
+          'api.AuthImpl.jwtPayload' implementation."))
+      return
+
+    _findUserPromise(login)
+    .then (user) ->
+      Q.all [
+        Q(user)
+        matchPassword(user.password, password)
+      ]
+    .spread (user, match) ->
+      if match
+        return _jwtPayloadPromise user
+
+      throw new UnauthorizedError(
+        'Invalid credentials', 'incorrect_password')
+    .then (data) ->
+      signedPayload = signPayload data.payload, data.expire
+      deferred.resolve signedPayload
+    .catch (err) ->
+      deferred.reject err
+
+    deferred.promise.nodeify callback
+
+  api.Auth =
+    encodePassword: encodePassword
+    matchPassword: matchPassword
+    signPayload: signPayload
+    verifyToken: verifyToken
+    signUp: signUp
+    signIn: signIn
+    authenticate: signIn
+    AuthError: AuthError
+    ImplementationError: ImplementationError
+    SignupError: SignupError
+    UnauthorizedError: UnauthorizedError
 
   next()
+
+exports.auth = Auth
