@@ -212,7 +212,7 @@ Auth = (api, next) ->
         return _jwtPayloadPromise user
 
       throw new UnauthorizedError(
-        'Invalid credentials', 'incorrect_password')
+        'Invalid credentials', 'invalid_credentials')
     .then (data) ->
       signedPayload = signPayload data.payload, data.expire
       deferred.resolve signedPayload
@@ -234,6 +234,11 @@ Auth = (api, next) ->
     SignupError: SignupError
     UnauthorizedError: UnauthorizedError
 
+    errors:
+      user_already_exist: (message='User already exist') ->
+        new SignupError(message, 'user_already_exist')
+      invalid_credentials: (message='Invalid credentials') ->
+        new UnauthorizedError(message, 'invalid_credentials')
   next()
 
 exports.auth = Auth

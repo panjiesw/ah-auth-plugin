@@ -22,12 +22,13 @@ authenticateAction =
       connection.params.login, connection.params.password)
     .then (token) ->
       connection.response.token = token
-      next connection, yes
     .catch (err) ->
       connection.error = err
-      if error.status
-        connection.rawConnection.responseHttpCode = error.status
-      next connection, no
+      if err.status
+        connection.rawConnection.responseHttpCode = err.status
+    .finally ->
+      next connection, yes
+      return
 
 signupAction =
   name: "signup"
@@ -42,12 +43,13 @@ signupAction =
     .then (response) ->
       if response
         connection.rawConnection.responseHttpCode = 201
-        next connection, yes
     .catch (err) ->
       connection.error = err
-      if error.status
-        connection.rawConnection.responseHttpCode = error.status
-      next connection, no
+      if err.status
+        connection.rawConnection.responseHttpCode = err.status
+    .finally ->
+      next connection, yes
+      return
 
 exports.authenticate = authenticateAction
 exports.signup = signupAction
