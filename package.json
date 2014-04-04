@@ -29,7 +29,7 @@
     "node-uuid": "~1.4.1",
     "q": "~1.0.1",
     "scrypt": "~3.0.1",
-    "underscore": "^1.6.0"
+    "underscore": "~1.6.0"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
