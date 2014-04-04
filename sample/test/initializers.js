@@ -78,6 +78,7 @@ describe('Testing Initializer: Auth', function () {
 
     it('must be able to signUp', function (done) {
       api.Auth.signUp(userData, 'password', true, function(error, response) {
+        console.log(error);
         expect(error).to.not.exist();
         expect(response).to.be.true();
         done();
