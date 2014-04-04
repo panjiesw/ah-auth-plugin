@@ -1,7 +1,7 @@
 var fs = require('fs');
 var cluster = require('cluster');
 
-exports.default = { 
+exports.default = {
   logger: function(api){
     var logger = { transports: [] };
 
@@ -32,14 +32,14 @@ exports.default = {
 
     return logger;
   }
-}
+};
 
-exports.test = { 
+exports.test = {
   logger: function(api){
     return {
       transports: null
-    }
+    };
   }
-}
+};
 
- 
+

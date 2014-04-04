@@ -4,6 +4,7 @@
   "description": "Stateless authentication plugin using JSON Web Token for actionhero API Server",
   "main": "''",
   "scripts": {
+    "test": "grunt dev && cd sample && npm run test",
     "prepublish": "grunt dev",
     "postpublish": "grunt clean"
   },
@@ -24,10 +25,11 @@
   },
   "homepage": "https://github.com/panjiesw/ah-auth-plugin",
   "dependencies": {
-    "q": "~1.0.1",
     "jsonwebtoken": "~0.2.0",
+    "node-uuid": "~1.4.1",
+    "q": "~1.0.1",
     "scrypt": "~3.0.1",
-    "node-uuid": "~1.4.1"
+    "underscore": "^1.6.0"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",

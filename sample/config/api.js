@@ -38,10 +38,12 @@ exports.default = {
         'log':         [ __dirname + '/../log'          ] ,
         'server':      [ __dirname + '/../servers'      ] ,
         'initializer': [ __dirname + '/../initializers' ] ,
-        'plugin':      [ __dirname + '/../node_modules' ] 
+        'plugin':      [ __dirname + '/../../..' ]
       },
       // list of actionhero plugins you want to load
       plugins: [
+        'ah-nodemailer-plugin',
+        'ah-auth-plugin'
         // this is a list of plugin names
         // plugin still need to be included in `package.json` or the path defined in `api.config.general.paths.plugin`
       ],
@@ -51,11 +53,11 @@ exports.default = {
         //'secureRoom': {authorized: true},
         'defaultRoom': {}
       }
-    }
+    };
   }
-}
+};
 
-exports.test = { 
+exports.test = {
   general: function(api){
     return {
       id: 'test-server',
@@ -64,16 +66,15 @@ exports.test = {
         'defaultRoom': {},
         'otherRoom': {},
         'secureRoom': {authorized: true}
-      },
-      developmentMode: true
-    }
+      }
+    };
   }
-}
+};
 
-exports.production = { 
+exports.production = {
   general: function(api){
-    return {  
+    return {
       developmentMode: false
-    }
+    };
   }
-}
+};
