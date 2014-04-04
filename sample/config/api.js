@@ -38,7 +38,7 @@ exports.default = {
         'log':         [ __dirname + '/../log'          ] ,
         'server':      [ __dirname + '/../servers'      ] ,
         'initializer': [ __dirname + '/../initializers' ] ,
-        'plugin':      [ __dirname + '/../../..' ]
+        'plugin':      [ __dirname + '/../npm_modules', __dirname + '/../../..' ]
       },
       // list of actionhero plugins you want to load
       plugins: [

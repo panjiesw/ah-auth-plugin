@@ -9,9 +9,10 @@ Defines ``api.Auth``
 ###
 
 Q = require 'q'
-_ = require 'lodash'
+_ = require 'underscore'
 scrypt = require 'scrypt'
 jwt = require 'jsonwebtoken'
+uuid = require 'node-uuid'
 
 AuthError = (message, code) ->
   @name = "AuthError"
@@ -70,11 +71,17 @@ Auth = (api, next) ->
     if api.AuthImpl and api.AuthImpl.encodePassword
       _encodePasswordPromise(password).nodeify callback
     else
-      _encodePassword[scrypt](password).nodeify callback
+      _encodePassword['scrypt'](password).nodeify callback
 
   _matchPassword =
     scrypt: (passwordHash, password) ->
-      Q.nfcall(scrypt.verifyHash, passwordHash, password)
+      deferred = Q.defer()
+      scrypt.verifyHash passwordHash, password, (err, result) ->
+        if err
+          deferred.reject err
+        else
+          deferred.resolve result
+      deferred.promise
 
   _matchPasswordPromise = (passwordHash, password) ->
     if Q.isPromiseAlike api.AuthImpl.matchPassword
@@ -90,13 +97,13 @@ Auth = (api, next) ->
           new ImplementationError(
             "No 'api.AuthImpl.matchPassword' implementation"))
       else
-        _matchPasswordPromise(passwordHash, password)
+        _matchPasswordPromise['scrypt'](passwordHash, password)
         .then (result) ->
           deferred.resolve result
         .catch (error) ->
           deferred.reject error
     else
-      _matchPassword[scrypt](passwordHash, password)
+      _matchPassword['scrypt'](passwordHash, password)
       .then (result) ->
         deferred.resolve result
       .catch (err) ->
@@ -117,7 +124,7 @@ Auth = (api, next) ->
       algorithm: config.jwt.algorithm
 
   verifyToken = (token, options, callback) ->
-    Q.nfcall(jwt.verify, token, config.jwt.secret, options).nodeify callback
+    Q.ninvoke(jwt, 'verify', token, config.jwt.secret, options).nodeify callback
 
   _signUpPromise = (userData, uuid) ->
     if Q.isPromiseAlike api.AuthImpl.signUp
@@ -135,10 +142,10 @@ Auth = (api, next) ->
       unless api.AuthImpl and api.AuthImpl.signUp
         throw new ImplementationError(
           "no 'api.AuthImpl.signUp' implementation.")
-      uuid = null
+      _uuid = null
       if config.enableVerification and needVerify
-        uuid = uuid.v4()
-      return _signUpPromise(userData, uuid)
+        _uuid = uuid.v4()
+      return _signUpPromise(userData, _uuid)
     .then (data) ->
       unless data.user
         throw new ImplementationError("no 'user' field in returned hash of
@@ -156,7 +163,10 @@ Auth = (api, next) ->
             to: data.user.email
           locals:
             uuid: data.uuid
-          template: if data.options then data.options.template else 'welcome'
+        if data.options and data.options.template
+          options.template = data.options.template
+        else
+          options.template = 'welcome'
 
         if data.options
           _.defaults options.mail, data.options.mail
@@ -189,8 +199,7 @@ Auth = (api, next) ->
     unless api.AuthImpl and api.AuthImpl.findUser and api.AuthImpl.jwtPayload
       deferred.reject(
         new ImplementationError("no 'api.AuthImpl.findUser' and or
-          'api.AuthImpl.jwtPayload' implementation."))
-      return
+          'api.AuthImpl.jwtPayload' implementation.", 'signin_impl_error'))
 
     _findUserPromise(login)
     .then (user) ->

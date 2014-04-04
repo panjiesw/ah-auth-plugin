@@ -42,7 +42,7 @@ describe('Testing Initializer: Auth', function () {
     };
     var hashedPassword, token;
 
-    it('encodes and matches password', function (done) {
+    it('has to encode and match password', function (done) {
       api.Auth.encodePassword('somepassword', function(err, hashed) {
         expect(err).to.not.exist();
         hashedPassword = hashed;
@@ -64,11 +64,11 @@ describe('Testing Initializer: Auth', function () {
       });
     });
 
-    it('signs jwt payload', function () {
+    it('has to sign jwt payload', function () {
       token = api.Auth.signPayload({data: 'somedata'});
     });
 
-    it('verifies token', function (done) {
+    it('has to verify and decode token', function (done) {
       api.Auth.verifyToken(token, {}, function(err, decoded) {
         expect(err).to.not.exist();
         expect(decoded).to.have.property('data');
@@ -92,7 +92,7 @@ describe('Testing Initializer: Auth', function () {
       });
     });
 
-    it('must throws error on invalid password', function (done) {
+    it('has to throw error on invalid password when signing in', function (done) {
       api.Auth.signIn('someone', 'wrongpassword', function(err, response) {
         expect(err).to.exist();
         expect(err.code).to.equal('incorrect_password');
