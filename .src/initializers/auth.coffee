@@ -59,13 +59,13 @@ Auth = (api, next) ->
 
   _encodePassword =
     scrypt: (password) ->
-      Q.nfcall(scrypt.passwordHash, password, config.scrypt.maxtime)
+      Q.ninvoke(scrypt, 'passwordHash', password, config.scrypt.maxtime)
 
   _encodePasswordPromise = (password) ->
     if Q.isPromiseAlike api.AuthImpl.encodePassword
       api.AuthImpl.encodePassword password
     else
-      Q.nfcall api.AuthImpl.encodePassword, password
+      Q.ninvoke api.AuthImpl, 'encodePassword', password
 
   encodePassword = (password, callback) ->
     if api.AuthImpl and api.AuthImpl.encodePassword
@@ -87,7 +87,7 @@ Auth = (api, next) ->
     if Q.isPromiseAlike api.AuthImpl.matchPassword
       api.AuthImpl.matchPassword passwordHash, password
     else
-      Q.nfcall api.AuthImpl.matchPassword, passwordHash, password
+      Q.ninvoke api.AuthImpl, 'matchPassword', passwordHash, password
 
   matchPassword = (passwordHash, password, callback) ->
     deferred = Q.defer()
@@ -130,7 +130,7 @@ Auth = (api, next) ->
     if Q.isPromiseAlike api.AuthImpl.signUp
       api.AuthImpl.signUp userData, uuid
     else
-      Q.nfcall api.AuthImpl.signUp, userData, uuid
+      Q.ninvoke api.AuthImpl, 'signUp', userData, uuid
 
   signUp = (userData, passwordField, needVerify, callback) ->
     deferred = Q.defer()
@@ -186,13 +186,13 @@ Auth = (api, next) ->
     if Q.isPromiseAlike api.AuthImpl.findUser
       api.AuthImpl.findUser login
     else
-      Q.nfcall api.AuthImpl.findUser, login
+      Q.ninvoke api.AuthImpl, 'findUser', login
 
   _jwtPayloadPromise = (user) ->
     if Q.isPromiseAlike api.AuthImpl.jwtPayload
       api.AuthImpl.jwtPayload user
     else
-      Q.nfcall api.AuthImpl.jwtPayload, user
+      Q.ninvoke api.AuthImpl, 'jwtPayload', user
 
   signIn = (login, password, callback) ->
     deferred = Q.defer()
