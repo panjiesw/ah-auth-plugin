@@ -7,6 +7,7 @@
     "test": "grunt dev && cd sample && npm run test",
     "prepublish": "grunt dev",
     "postpublish": "grunt clean"
+    "postinstall": "scripts/postinstall.js"
   },
   "repository": {
     "type": "git",
@@ -34,9 +35,10 @@
   "devDependencies": {
     "coffee-script": "~1.7.1",
     "grunt": "~0.4.4",
+    "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-coffee": "~0.10.1",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-newer": "~0.7.0",
-    "grunt-contrib-clean": "~0.5.0"
+    "mkdirp": "^0.3.5"
   }
 }
