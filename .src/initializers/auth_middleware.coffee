@@ -23,7 +23,7 @@ exports.auth_middleware = (api, next) ->
       if connection.rawConnection.req
         check = connection.rawConnection.req
       else
-        connection['mock']
+        check = connection['mock']
 
       if check.headers and check.headers['authorization']
         parts = check.headers['authorization'].split ' '
@@ -36,20 +36,20 @@ exports.auth_middleware = (api, next) ->
             connection.user = decoded
             callback connection, yes
           .catch (err) ->
-            error = new api.UnauthorizedError err.message, 'invalid_token'
+            error = new api.Auth.UnauthorizedError err.message, 'invalid_token'
             connection.error = error
             connection.rawConnection.responseHttpCode = error.status
             callback connection, no
           return
         else
-          error = new api.UnauthorizedError(
+          error = new api.Auth.UnauthorizedError(
             'Format is Authorization: Token [token]', 'credentials_bad_format')
           connection.error = error
           connection.rawConnection.responseHttpCode = error.status
           callback connection, no
           return
       else
-        error = new api.UnauthorizedError(
+        error = new api.Auth.UnauthorizedError(
           'No Authorization header was found', 'credentials_required')
         connection.error = error
         connection.rawConnection.responseHttpCode = error.status

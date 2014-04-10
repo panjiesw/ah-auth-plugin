@@ -45,4 +45,39 @@ describe('Testing Action: Auth', function () {
       done();
     });
   });
+
+  describe('Testing restricted action', function () {
+
+    it('must reject unauthenticated request', function (done) {
+      mock = api.specHelper.connection();
+      mock.mock = {};
+      api.specHelper.runAction('restricted', mock, function (response, connection) {
+        expect(response.error).to.equal('UnauthorizedError: No Authorization header was found');
+        done();
+      });
+    });
+
+    it('returns restricted info', function (done) {
+      api.specHelper.runAction('authenticate', {login: 'someone', password: 'somepassword'}, function(resp, conn) {
+        mock = api.specHelper.connection();
+        mock.mock = {
+          headers: {
+            'authorization': 'Token ' + resp.token
+          }
+        };
+
+        api.specHelper.runAction('restricted', mock, function (response, connection) {
+          expect(response.error).to.not.exist();
+          expect(response.user).to.exist();
+          expect(response.user).to.have.property('username');
+          expect(response.user).to.have.property('email');
+          expect(response.user).to.have.property('firstName');
+          expect(response.user).to.have.property('lastName');
+          expect(response.user).to.not.have.property('password');
+          done();
+        });
+      });
+    });
+
+  });
 });
