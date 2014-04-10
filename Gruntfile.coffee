@@ -79,6 +79,9 @@ module.exports = (grunt) ->
             dest: "css/"
             expand: yes
           }
+        ]
+      fonts:
+        files: [
           # GlyphIcons
           {
             cwd: "bower_components/bootstrap/dist/fonts"
@@ -123,7 +126,6 @@ module.exports = (grunt) ->
       'css/*.map'
       'scripts/*.js'
       'scripts/*.map'
-      'fonts/**'
       '_build/**'
     ]
 
@@ -144,12 +146,13 @@ module.exports = (grunt) ->
   grunt.registerTask 'dev', [
     'less:dev'
     'jade:dev'
-    'copy:dev'
+    'copy'
     'jekyll:dev'
   ]
 
   grunt.registerTask 'dist', [
     'clean'
+    'copy:fonts'
     'less:dist'
     'jade:dist'
     'jekyll:dist'
