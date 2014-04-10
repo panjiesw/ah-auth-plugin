@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/><meta content="ActionHero Authentication Plugin; Stateless authentication plugin for actionhero js API Server" name="description"/><meta name="author" content="Panjie SW"/><title>ActionHero Authentication Plugin - Implementation</title><link rel="stylesheet" type="text/css" href="/css/app.min.css"/><link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/css/jasny-bootstrap.min.css"/><link rel="stylesheet" type="text/css" href="/css/app-theme.min.css"/><link rel="stylesheet" type="text/css" href="/css/lib/prism.css"/><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700"/></head><body><div class="navmenu navmenu-inverse navmenu-fixed-left offcanvas-sm"><a href="#" class="navmenu-brand visible-md visible-lg">ah-auth-plugin</a><ul class="nav navmenu-nav"><li class=""><a href="/"><span class='glyphicon glyphicon-home'></span>&nbsp;&nbsp;&nbsp;Getting Started</a></li><li class=""><a href="/installation.html"><span class='glyphicon glyphicon-import'></span>&nbsp;&nbsp;&nbsp;Installation</a></li><li class=""><a href="/configuration.html"><span class='glyphicon glyphicon-cog'></span>&nbsp;&nbsp;&nbsp;Configuration</a></li></ul><ul class="nav navmenu-nav"><li class="dropdown-header"><h4>Usage</h4></li><li class="active"><a href="/usage/implementation.html"><span class='glyphicon glyphicon-link'></span>&nbsp;&nbsp;&nbsp;Implementation</a></li><li class=""><a href="/usage/custom-password-crypt.html"><span class='glyphicon glyphicon-lock'></span>&nbsp;&nbsp;&nbsp;Custom Password Crypt</a></li><li class=""><a href="/usage/actions.html"><span class='glyphicon glyphicon-font'></span>&nbsp;&nbsp;&nbsp;Actions</a></li></ul></div><div class="navbar navbar-default navbar-fixed-top hidden-md hidden-lg"><button type="button" data-toggle="offcanvas" data-target=".navmenu" class="navbar-toggle"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="#" class="navbar-brand">ah-auth-plugin</a></div><div class="github-fork-ribbon-wrapper right"><div class="github-fork-ribbon"><a href="https://github.com/panjiesw/ah-auth-plugin">Fork me on GitHub</a></div></div><div class="container"><div class="content"><div class="page-header"><h1>Implementation</h1></div>
+<h2 id="the-flow">The Flow</h2>
+
+<p>This plugin relies on how you implement some of required logic. You need to make a service / interface accessible under actionhero <code>api</code> object, do the necessary things there and call a callback function / return a promise. Below is how we illustrate this flow.</p>
+
+<p style="text-align:center;"><img src="/img/auth-flow.png" /></p>
+<p style="text-align:center;"><img src="/img/signup-flow.png" /></p>
+
+<h2 id="required-implementation">Required Implementation</h2>
+<p>Anywhere in one of your <code>initializers</code>, implement these following methods. There is an <a href="https://github.com/panjiesw/ah-auth-plugin/blob/master/sample/initializers/auth_impl.js">example</a> of these implementations using in-memory persistance.</p>
+
+<h3 id="apiauthimplsignupuserdata-uuid-callback">api.AuthImpl.signUp(userData, uuid, callback)</h3>
+<p>Called when a new user signs up to your app. You can save the <code>userData</code> and <code>uuid</code> to your database here. The <code>userData</code> already contains hashed password the user submitted earlier.</p>
+
+<ul>
+  <li><code>userData</code>, The user’s data submitted during signup process.</li>
+  <li><code>uuid</code>, The unique id generated for activation process.</li>
+  <li><code>callback</code>, The function to call after you’ve finished doing things here. Have to be called with these following parameters:
+    <ul>
+      <li><code>error</code>, In case any error happened during the process here, pass the error object. Otherwise pass <code>null</code>.</li>
+      <li><code>data</code>, A hash containing these required field:
+        <ul>
+          <li><code>user</code>, The user’s data.</li>
+          <li><code>uuid</code>, The unique id for activation process.</li>
+          <li><code>options</code>, The options to pass to ah-nodemailer-plugin, to send verification email. Please refer to <a href="https://github.com/panjiesw/ah-nodemailer-plugin#apimailersendoptions-callback">api.Mailer.send</a> to see available options.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>example:</p>
+
+<pre><code class="language-javascript">// User and Token is a model of some database.
+api.AuthImpl.signUp = function(userData, uuid, callback) {
+  User.save(userData);
+  Token.save({uuid: uuid});
+  var data = {
+    user: userData,
+    uuid: uuid,
+    options: {
+      locals: {
+        firstName: userData.firstName,
+        lastName: userData.lastName
+      }
+    }
+  };
+
+  // No error here, so the first argument of callback is null.
+  callback(null, data);
+};
+</code></pre>
+
+<h3 id="apiauthimplfinduserlogin-callback">api.AuthImpl.findUser(login, callback)</h3>
+<p>Called when a user signs in. You can do a database query to find the user here.</p>
+
+<ul>
+  <li><code>login</code>, The login field (username / email depends on your implementation) submitted during the process.</li>
+  <li><code>callback</code>, The function to call after you’ve finished doing things here. Have to be called with these following parameters:
+    <ul>
+      <li><code>error</code>, In case any error happened during the process here, pass the error object. This includes the case where no user is found. Otherwise pass <code>null</code>.</li>
+      <li><code>user</code>, The user data for the signed in user.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>example:</p>
+
+<pre><code class="language-javascript">// User is a model for some database.
+api.AuthImpl.findUser = function(login, callback) {
+  User.find({username: login}, function(err, user) {
+    if(err) {
+      callback(err);
+      return;
+    }
+    if(!user) {
+      callback(new Error('No user is found'));
+      return;
+    }
+    callback(null, user);
+  });
+};
+</code></pre>
+
+<h3 id="apiauthimpljwtpayloaduser-callback">api.AuthImpl.jwtPayload(user, callback)</h3>
+<p>Compose the user’s payload. Include any substantial user’s data you want to be available later in restricted actions.</p>
+
+<ul>
+  <li><code>user</code>, The user’s data. This is basically the same user’s data you provide in <a href="#apiauthimplfinduserlogin-callback">api.AuthImpl.findUser</a> above.</li>
+  <li><code>callback</code>, The function to call after you’ve finished doing things here. Have to be called with these following parameters:
+    <ul>
+      <li><code>error</code>, In case any error happened during the process here, pass the error object. Otherwise pass <code>null</code>.</li>
+      <li><code>options</code>, A hash consists of these following fields:
+        <ul>
+          <li><code>payload</code>, The manipulated user’s data above.</li>
+          <li><code>expired</code>, The expire time of the token. Leave this to provide default value as in <a href="/configuration.html#apiconfigjwt">JWT Configuration</a>.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>example:</p>
+
+<pre><code class="language-javascript">api.AuthImpl.jwtPayload = function(user, callback) {
+  // Exclude the user's password from soon to be signed jwt payload.
+  delete user.password;
+  callback(null, {payload: user});
+};
+</code></pre>
+<ul class="pager"><li class="previous"><a href="/configuration.html">&laquo; Configuration</a></li><li class="next"><a href="/usage/custom-password-crypt.html">Custom Password Crypt &raquo;</a></li></ul></div><div id="footer"><div class="container"><p>Designed and developed by <a href="https://twitter.com/panjiesw">@panjiesw</a></p><p>Code licensed under <a href="https://github.com/panjiesw/ah-auth-plugin/blob/master/LICENSE.md">MIT License</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/"> CC By 3.0</a>.</p><p>&copy; 2014 Panjie SW</p></div></div></div><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/js/jasny-bootstrap.min.js"></script><script src="/scripts/lib/prism.js"></script></body></html>

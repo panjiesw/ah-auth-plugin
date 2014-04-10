@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/><meta content="ActionHero Authentication Plugin; Stateless authentication plugin for actionhero js API Server" name="description"/><meta name="author" content="Panjie SW"/><title>ActionHero Authentication Plugin - Actions</title><link rel="stylesheet" type="text/css" href="/css/app.min.css"/><link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/css/jasny-bootstrap.min.css"/><link rel="stylesheet" type="text/css" href="/css/app-theme.min.css"/><link rel="stylesheet" type="text/css" href="/css/lib/prism.css"/><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700"/></head><body><div class="navmenu navmenu-inverse navmenu-fixed-left offcanvas-sm"><a href="#" class="navmenu-brand visible-md visible-lg">ah-auth-plugin</a><ul class="nav navmenu-nav"><li class=""><a href="/"><span class='glyphicon glyphicon-home'></span>&nbsp;&nbsp;&nbsp;Getting Started</a></li><li class=""><a href="/installation.html"><span class='glyphicon glyphicon-import'></span>&nbsp;&nbsp;&nbsp;Installation</a></li><li class=""><a href="/configuration.html"><span class='glyphicon glyphicon-cog'></span>&nbsp;&nbsp;&nbsp;Configuration</a></li></ul><ul class="nav navmenu-nav"><li class="dropdown-header"><h4>Usage</h4></li><li class=""><a href="/usage/implementation.html"><span class='glyphicon glyphicon-link'></span>&nbsp;&nbsp;&nbsp;Implementation</a></li><li class=""><a href="/usage/custom-password-crypt.html"><span class='glyphicon glyphicon-lock'></span>&nbsp;&nbsp;&nbsp;Custom Password Crypt</a></li><li class="active"><a href="/usage/actions.html"><span class='glyphicon glyphicon-font'></span>&nbsp;&nbsp;&nbsp;Actions</a></li></ul></div><div class="navbar navbar-default navbar-fixed-top hidden-md hidden-lg"><button type="button" data-toggle="offcanvas" data-target=".navmenu" class="navbar-toggle"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="#" class="navbar-brand">ah-auth-plugin</a></div><div class="github-fork-ribbon-wrapper right"><div class="github-fork-ribbon"><a href="https://github.com/panjiesw/ah-auth-plugin">Fork me on GitHub</a></div></div><div class="container"><div class="content"><div class="page-header"><h1>Actions</h1></div>
+<p>In actionhero, <code>action</code> is the entry point to your API Server. And the point of providing authentication to our API Server is mostly because we want to restrict some API to only accessible to authenticated user. Here is how we do it with ah-auth-plugin.</p>
+
+<h2 id="provided-actions">Provided Actions</h2>
+<p>For your convinience, ah-auth-plugin provides two basic actions to authenticate / sign a user in and also register a new user. You can include these in your <code>routes.js</code> or call it directly by specifying <code>?action=</code> param in a URL.</p>
+
+<h3 id="post-authenticate">[POST] authenticate</h3>
+<p>Authenticate / sign a user in, using <em>authentication flow</em> described in <a href="/implementation.html">Implementation</a>. The action’s name is <code>authenticate</code>.</p>
+
+<ul>
+  <li><strong>Required Parameters</strong>
+    <ul>
+      <li><code>login</code>, The user’s username / email address. Depends on your implementation.</li>
+      <li><code>password</code>, The user’s password.</li>
+    </ul>
+  </li>
+  <li><strong>Optional Parameters</strong>
+    <ul>
+      <li><code>remember</code>, Boolean indicating whether to remember this user’s login.<br />
+  Basically this is only provided for you to implement. For example, because JWT doesn’t use <code>session</code>, remembering a user login could mean extending the <code>expire</code> time of the token beyond the default value.</li>
+    </ul>
+  </li>
+  <li><strong>Returns</strong> A JSON Object containing only one field:
+    <ul>
+      <li><code>token</code>, The signed JWT Payload. Save this in your client persistence scheme.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>example:</p>
+
+<pre><code class="language-bash">$ curl -X POST -H "Content-Type: application/json" -d '{"login":"someone", "password":"somepassword"}' http://localhost:8080/api/authenticate
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9...."
+}
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="language-bash">$ curl -X POST -d "login=someone&amp;password=somepassword" http://localhost:8080/api/authenticate
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9...."
+}
+</code></pre>
+
+<h3 id="post-signup">[POST] signUp</h3>
+<p>Register a new user, using <em>signUp flow</em> described in <a href="/implementation.html">Implementation</a>. The action’s name is <code>signUp</code>.</p>
+
+<ul>
+  <li><strong>Required Parameters</strong>
+    <ul>
+      <li><code>data</code>, A JSON data of the new user.</li>
+    </ul>
+  </li>
+  <li><strong>Optional Parameters</strong>
+    <ul>
+      <li>None</li>
+    </ul>
+  </li>
+  <li><strong>Returns</strong> None</li>
+</ul>
+
+<hr />
+
+<h2 id="restricting-actions">Restricting actions</h2>
+<p>To restrict an action so only an authenticated user can access it, add a property <code>authenticate: true</code> to your action module’s exports.</p>
+
+<pre><code class="language-javascript">var action = {};
+
+/////////////////////////////////////////////////////////////////////
+// metadata
+action.name = 'restricted';
+action.description = 'I am accessible only to authenticated user';
+action.inputs = {
+  'required' : [],
+  'optional' : []
+};
+action.blockedConnectionTypes = [];
+action.outputExample = {
+  status: 'OK',
+  uptime: 1234,
+  stats: {}
+}
+action.authenticate = true
+
+/////////////////////////////////////////////////////////////////////
+// functional
+action.run = function(api, connection, next){
+  connection.response.user = connection.user;
+  next(connection, true);
+};
+
+/////////////////////////////////////////////////////////////////////
+// exports
+exports.action = action;
+</code></pre>
+
+<p>As you can see above, if the incoming request is valid and authenticated, a <code>connection.user</code> object is available for you to use in this request.</p>
+
+<p>The value of <code>connection.user</code> is the same as the payload you compose using implementation <a href="/usage/implementation.html#apiauthimpljwtpayloaduser-callback">api.AuthImpl.jwtPayload</a> discussed earlier.</p>
+
+<hr />
+
+<h2 id="client-authentication">Client Authentication</h2>
+<p>To authenticate from a client you can call the <code>/api/authenticate</code> endpoint above. If the authentication is successful, the server will return a JWT Signed Payload. The client then, is responsible of managing the Token, e.g saving it in <code>localStorage</code> or <code>sqlite</code> database. This saved Token must be included as <code>Authorization</code> header in subsequent Restricted API Call to authenticate the request.</p>
+
+<pre><code>Authorization: Token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9....
+</code></pre>
+
+<p>example of using <code>curl</code> after successfully authenticate the user:</p>
+
+<pre><code class="language-bash">$ curl -X GET -H 'Authorization: Token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9....' http://localhost:8080/api/restricted
+{
+  "user": {
+    "username": "someone"
+    "email": "someone@somewhere.com"
+    "firstName": "Some"
+    "lastName": "Derp"
+  }  
+}
+</code></pre>
+
+<p>Here is a good read about managing request from an AngularJS client to API Server using JSON Web Token:</p>
+
+<ul>
+  <li><a href="http://blog.auth0.com/2014/01/07/angularjs-authentication-with-cookies-vs-token/">Cookies vs Tokens. Getting auth right with Angular.JS</a></li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/usage/custom-password-crypt.html">&laquo; Custom Password Crypt</a></li><li class="next"><a href="/actions.html">Actions &raquo;</a></li></ul></div><div id="footer"><div class="container"><p>Designed and developed by <a href="https://twitter.com/panjiesw">@panjiesw</a></p><p>Code licensed under <a href="https://github.com/panjiesw/ah-auth-plugin/blob/master/LICENSE.md">MIT License</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/"> CC By 3.0</a>.</p><p>&copy; 2014 Panjie SW</p></div></div></div><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/js/jasny-bootstrap.min.js"></script><script src="/scripts/lib/prism.js"></script></body></html>

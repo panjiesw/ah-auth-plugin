@@ -1,0 +1,24 @@
+{
+  "name": "ah-auth-doc",
+  "version": "0.0.1",
+  "homepage": "https://github.com/panjiesw/ah-auth-plugin",
+  "authors": [
+    "Panjie Wicaksono <panjie@panjiesw.com>"
+  ],
+  "description": "Documentation for ah-auth-plugin",
+  "moduleType": [
+    "node"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.1.1",
+    "jasny-bootstrap": "~3.1.1"
+  }
+}

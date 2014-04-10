@@ -1,0 +1,40 @@
+.navmenu.navmenu-inverse.navmenu-fixed-left.offcanvas-sm
+  a.navmenu-brand.visible-md.visible-lg(href='#') {{ site.project }}
+  ul.nav.navmenu-nav
+    li(class="{% if page.nav == 'intro' %}active{% endif %}")
+      a(href='/') <span class='glyphicon glyphicon-home'></span>&nbsp;&nbsp;&nbsp;Getting Started
+    li(class="{% if page.nav == 'install' %}active{% endif %}")
+      a(href='/installation.html') <span class='glyphicon glyphicon-import'></span>&nbsp;&nbsp;&nbsp;Installation
+    li(class="{% if page.nav == 'config' %}active{% endif %}")
+      a(href='/configuration.html') <span class='glyphicon glyphicon-cog'></span>&nbsp;&nbsp;&nbsp;Configuration
+
+  ul.nav.navmenu-nav
+    li.dropdown-header
+      h4 Usage
+    li(class="{% if page.nav == 'impl' %}active{% endif %}")
+      a(href='/usage/implementation.html') <span class='glyphicon glyphicon-link'></span>&nbsp;&nbsp;&nbsp;Implementation
+    li(class="{% if page.nav == 'pwd' %}active{% endif %}")
+      a(href='/usage/custom-password-crypt.html') <span class='glyphicon glyphicon-lock'></span>&nbsp;&nbsp;&nbsp;Custom Password Crypt
+    li(class="{% if page.nav == 'actions' %}active{% endif %}")
+      a(href='/usage/actions.html') <span class='glyphicon glyphicon-font'></span>&nbsp;&nbsp;&nbsp;Actions
+    //- li.dropdown.open
+    //-   a.dropdown-toggle(href='#', data-toggle='dropdown') <span class='glyphicon glyphicon-book'></span>&nbsp;&nbsp;&nbsp;Usage <b class='caret'></b>
+    //-   ul.dropdown-menu.navmenu-nav
+    //-     li(class="{% if page.nav == 'impl' %}active{% endif %}")
+    //-       a(href='#') <span class='glyphicon glyphicon-link'></span>&nbsp;&nbsp;&nbsp;Implementation
+  //-       li
+  //-         a(href='#') Another action
+  //-       li
+  //-         a(href='#') Something else here
+  //-       li.divider
+  //-       li.dropdown-header Nav header
+  //-       li
+  //-         a(href='#') Separated link
+  //-       li
+  //-         a(href='#') One more separated link
+.navbar.navbar-default.navbar-fixed-top.hidden-md.hidden-lg
+  button.navbar-toggle(type='button', data-toggle='offcanvas', data-target='.navmenu')
+    span.icon-bar
+    span.icon-bar
+    span.icon-bar
+  a.navbar-brand(href='#') {{ site.project }}

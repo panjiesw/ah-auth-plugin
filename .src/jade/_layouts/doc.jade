@@ -1,0 +1,42 @@
+doctype html
+html(lang="en")
+  head
+    {% include common-headers.html %}
+  body
+    {% include offcanvas.html %}
+
+    .github-fork-ribbon-wrapper.right
+      .github-fork-ribbon
+        a(href='https://github.com/panjiesw/ah-auth-plugin') Fork me on GitHub
+
+    .container
+      .content
+        .page-header
+          h1 {{ page.title }}
+
+        {% if page.lead %}
+        p.lead {{ page.lead }}
+        {% endif %}
+
+        {{ content }}
+
+        ul.pager
+          li(class="{% if page.prevDoc %}previous{% else %}previous disabled{% endif %}")
+            {% if page.prevDoc %}
+            a(href="{{page.prevDoc}}") &laquo; {{ page.prevTitle }}
+            {% else %}
+            a(href="#") Home
+            {% endif %}
+          li(class="{% if page.nextDoc %}next{% else %}next disabled{% endif %}")
+            {% if page.nextDoc %}
+            a(href="{{ page.nextDoc }}") {{ page.nextTitle }} &raquo;
+            {% else %}
+            a(href="#") End
+            {% endif %}
+      div#footer
+        .container
+          p Designed and developed by <a href="https://twitter.com/panjiesw">@panjiesw</a>
+          p Code licensed under <a href="https://github.com/panjiesw/ah-auth-plugin/blob/master/LICENSE.md">MIT License</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/"> CC By 3.0</a>.
+          p &copy; 2014 Panjie SW
+
+    {% include common-footers.html %}

@@ -1,0 +1,11 @@
+safe: true
+lsi: false
+exclude: ['bower_components', 'node_modules', 'Gruntfile.coffee', 'bower.json', 'package.json', '*.sublime-*']
+permalink: /:title/
+
+project: ah-auth-plugin
+
+markdown: kramdown
+
+kramdown:
+  input: GFM

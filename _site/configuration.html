@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/><meta content="ActionHero Authentication Plugin; Stateless authentication plugin for actionhero js API Server" name="description"/><meta name="author" content="Panjie SW"/><title>ActionHero Authentication Plugin - Configuration</title><link rel="stylesheet" type="text/css" href="/css/app.min.css"/><link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/css/jasny-bootstrap.min.css"/><link rel="stylesheet" type="text/css" href="/css/app-theme.min.css"/><link rel="stylesheet" type="text/css" href="/css/lib/prism.css"/><link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700"/></head><body><div class="navmenu navmenu-inverse navmenu-fixed-left offcanvas-sm"><a href="#" class="navmenu-brand visible-md visible-lg">ah-auth-plugin</a><ul class="nav navmenu-nav"><li class=""><a href="/"><span class='glyphicon glyphicon-home'></span>&nbsp;&nbsp;&nbsp;Getting Started</a></li><li class=""><a href="/installation.html"><span class='glyphicon glyphicon-import'></span>&nbsp;&nbsp;&nbsp;Installation</a></li><li class="active"><a href="/configuration.html"><span class='glyphicon glyphicon-cog'></span>&nbsp;&nbsp;&nbsp;Configuration</a></li></ul><ul class="nav navmenu-nav"><li class="dropdown-header"><h4>Usage</h4></li><li class=""><a href="/usage/implementation.html"><span class='glyphicon glyphicon-link'></span>&nbsp;&nbsp;&nbsp;Implementation</a></li><li class=""><a href="/usage/custom-password-crypt.html"><span class='glyphicon glyphicon-lock'></span>&nbsp;&nbsp;&nbsp;Custom Password Crypt</a></li><li class=""><a href="/usage/actions.html"><span class='glyphicon glyphicon-font'></span>&nbsp;&nbsp;&nbsp;Actions</a></li></ul></div><div class="navbar navbar-default navbar-fixed-top hidden-md hidden-lg"><button type="button" data-toggle="offcanvas" data-target=".navmenu" class="navbar-toggle"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="#" class="navbar-brand">ah-auth-plugin</a></div><div class="github-fork-ribbon-wrapper right"><div class="github-fork-ribbon"><a href="https://github.com/panjiesw/ah-auth-plugin">Fork me on GitHub</a></div></div><div class="container"><div class="content"><div class="page-header"><h1>Configuration</h1></div>
+<p>After the plugin is installed, there will be a config file named <code>auth.js</code> copied to your <code>/config/plugins</code> folder. Below is the default value provided along with its explanation. Change / override it as you wish to meet your requirements.</p>
+
+<h2 id="config-values">Config Values</h2>
+
+<h3 id="apiconfigauth">api.config.auth</h3>
+<p>This section contains configuration directly related to ah-auth-plugin.</p>
+
+<ul>
+  <li><code>enableVerification=true</code>, Defines whether verification process is enabled. If it’s enabled then a newly signed up user and password change / reset process will, by default, lead to an email sending further instructions to complete the process.</li>
+</ul>
+
+<h3 id="apiconfigjwt">api.config.jwt</h3>
+<p>This section contains configuration needed to sign, verify and decode JSON Web Token.</p>
+
+<ul>
+  <li><code>secret='some-secret'</code>, A string or buffer containing either the secret for HMAC algorithms, or the path of PEM encoded private key for RSA and ECDSA.</li>
+  <li><code>algorithm='HS512'</code>, Algorithm used in signing the json payload. See <a href="https://github.com/auth0/node-jsonwebtoken#algorithms-supported">supported algorithms</a>.</li>
+  <li><code>expire=2 hours</code>, How long the token will expire in milisecond.</li>
+</ul>
+
+<h3 id="apiconfigscrypt">api.config.scrypt</h3>
+<p>This section contains configuration for encoding / decoding user’s password. <code>scrypt</code> is the default but you can define your own password hasher, as explained later in <a href="/usage/custom-password-hasher.html">Custom Password Hasher</a>.</p>
+
+<ul>
+  <li><code>maxtime=0.2</code>, A decimal (double) representing the maxtime in seconds for running scrypt.</li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/installation.html">&laquo; Installation</a></li><li class="next"><a href="/usage/implementation.html">Implementation &raquo;</a></li></ul></div><div id="footer"><div class="container"><p>Designed and developed by <a href="https://twitter.com/panjiesw">@panjiesw</a></p><p>Code licensed under <a href="https://github.com/panjiesw/ah-auth-plugin/blob/master/LICENSE.md">MIT License</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/"> CC By 3.0</a>.</p><p>&copy; 2014 Panjie SW</p></div></div></div><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.1/js/jasny-bootstrap.min.js"></script><script src="/scripts/lib/prism.js"></script></body></html>
