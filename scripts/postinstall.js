@@ -5,7 +5,7 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 
 var localFile   = path.normalize(__dirname + '/../config/auth.js');
-var projectFolder = path.normalize(process.cwd() + '/../config/plugins');
+var projectFolder = path.normalize(process.cwd() + '/config/plugins');
 var projectFile = path.normalize(projectFolder + '/auth.js');
 
 if(!fs.existsSync(projectFile) && !process.env.TRAVIS){
