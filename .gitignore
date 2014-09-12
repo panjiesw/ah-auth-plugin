@@ -5,3 +5,7 @@ npm-debug.log
 
 log
 pids
+
+actions
+config
+initializers

@@ -57,21 +57,41 @@ UnauthorizedError::constructor = UnauthorizedError
 Auth = (api, next) ->
   config = api.config.auth
 
+  # Used to call a function when it's unknown whether it uses node callback style
+  # or returns a promise.
+  # Mimics Q.ninvoke except that it will still work if the function is already using 
+  # promises instead of node callback style
+  # If object['name'] returns a promise, this simply forwards that promise on
+  # If object['name'] resolves via node callback style, a promise is created and 
+  # resolved when the callback is called
+  _hninvoke = (object, name) ->
+    deferred = Q.defer()
+    callback = (err, result) ->
+      if (err)
+        deferred.reject(err)
+      else
+        deferred.resolve(result)
+    args = [].slice.call(arguments, 2) || []
+    args.push(callback)
+    
+    result = object[name].apply(object, args);
+
+    if Q.isPromiseAlike(result)
+      return result
+    else
+      return deferred.promise;
+
   _encodePassword =
     scrypt: (password) ->
       Q.ninvoke(scrypt, 'passwordHash', password, config.scrypt.maxtime)
 
-  _encodePasswordPromise = (password) ->
-    if Q.isPromiseAlike api.AuthImpl.encodePassword
-      api.AuthImpl.encodePassword password
-    else
-      Q.ninvoke api.AuthImpl, 'encodePassword', password
-
   encodePassword = (password, callback) ->
     if api.AuthImpl and api.AuthImpl.encodePassword
-      _encodePasswordPromise(password).nodeify callback
+      promise = _hninvoke(api.AuthImpl, 'encodePassword', password)
     else
-      _encodePassword['scrypt'](password).nodeify callback
+      promise = _hninvoke(_encodePassword, 'scrypt', password)
+    promise.nodeify(callback)
+    promise
 
   _matchPassword =
     scrypt: (passwordHash, password) ->
@@ -83,12 +103,6 @@ Auth = (api, next) ->
           deferred.resolve result
       deferred.promise
 
-  _matchPasswordPromise = (passwordHash, password) ->
-    if Q.isPromiseAlike api.AuthImpl.matchPassword
-      api.AuthImpl.matchPassword passwordHash, password
-    else
-      Q.ninvoke api.AuthImpl, 'matchPassword', passwordHash, password
-
   matchPassword = (passwordHash, password, callback) ->
     deferred = Q.defer()
     if api.AuthImpl and api.AuthImpl.encodePassword
@@ -97,7 +111,7 @@ Auth = (api, next) ->
           new ImplementationError(
             "No 'api.AuthImpl.matchPassword' implementation"))
       else
-        _matchPasswordPromise['scrypt'](passwordHash, password)
+        _hninvoke(api.AuthImpl, 'matchPassword', passwordHash, password)
         .then (result) ->
           deferred.resolve result
         .catch (error) ->
@@ -126,12 +140,6 @@ Auth = (api, next) ->
   verifyToken = (token, options, callback) ->
     Q.ninvoke(jwt, 'verify', token, config.jwt.secret, options).nodeify callback
 
-  _signUpPromise = (userData, uuid) ->
-    if Q.isPromiseAlike api.AuthImpl.signUp
-      api.AuthImpl.signUp userData, uuid
-    else
-      Q.ninvoke api.AuthImpl, 'signUp', userData, uuid
-
   signUp = (userData, passwordField, needVerify, callback) ->
     deferred = Q.defer()
 
@@ -145,7 +153,7 @@ Auth = (api, next) ->
       _uuid = null
       if config.enableVerification and needVerify
         _uuid = uuid.v4()
-      return _signUpPromise(userData, _uuid)
+      return _hninvoke(api.AuthImpl, 'signUp', userData, _uuid)
     .then (data) ->
       unless data.user
         throw new ImplementationError("no 'user' field in returned hash of
@@ -182,18 +190,6 @@ Auth = (api, next) ->
 
     deferred.promise.nodeify callback
 
-  _findUserPromise = (login) ->
-    if Q.isPromiseAlike api.AuthImpl.findUser
-      api.AuthImpl.findUser login
-    else
-      Q.ninvoke api.AuthImpl, 'findUser', login
-
-  _jwtPayloadPromise = (user) ->
-    if Q.isPromiseAlike api.AuthImpl.jwtPayload
-      api.AuthImpl.jwtPayload user
-    else
-      Q.ninvoke api.AuthImpl, 'jwtPayload', user
-
   signIn = (login, password, callback) ->
     deferred = Q.defer()
     unless api.AuthImpl and api.AuthImpl.findUser and api.AuthImpl.jwtPayload
@@ -201,7 +197,7 @@ Auth = (api, next) ->
         new ImplementationError("no 'api.AuthImpl.findUser' and or
           'api.AuthImpl.jwtPayload' implementation.", 'signin_impl_error'))
 
-    _findUserPromise(login)
+    _hninvoke(api.AuthImpl, 'findUser', login)
     .then (user) ->
       Q.all [
         Q(user)
@@ -209,7 +205,7 @@ Auth = (api, next) ->
       ]
     .spread (user, match) ->
       if match
-        return _jwtPayloadPromise user
+        return _hninvoke(api.AuthImpl, 'jwtPayload', user)
 
       throw new UnauthorizedError(
         'Invalid credentials', 'invalid_credentials')
