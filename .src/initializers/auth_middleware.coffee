@@ -58,6 +58,6 @@ exports.auth_middleware = (api, next) ->
 
     callback connection, yes
 
-  api.actions.preProcessors.push authenticationMiddleware
+  api.actions.addPreProcessor authenticationMiddleware
 
   next()
